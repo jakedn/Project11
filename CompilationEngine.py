@@ -29,6 +29,8 @@ class CompilationEngine:
     AND = '&'
     OR = '|'
     NOT = '!'
+    SUBROUTINE_SCOPE = ['STATIC', 'FIELD']
+    CLASS_SCOPE = ['ARG', 'VAR']
 
 
 
