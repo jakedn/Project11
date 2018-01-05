@@ -132,27 +132,26 @@ class CompilationEngine:
         self.cur_subroutine_type = None
         return 0, tokens[:]
 
-    def compileparameterlist(self, tokens, numspaces):
+    def compileparameterlist(self, tokens):
         first = tokens.pop(0)
         # first token is '('
-        output = addspaces(numspaces) + str(first)
-        output += addspaces(numspaces) + '<parameterList>\n'
         if tokens[0].value != ')':
             # adds type
-            output += addspaces(numspaces + 1) + str(tokens.pop(0))
+            type_param = str(tokens.pop(0))
             # adds varName
-            output += addspaces(numspaces + 1) + str(tokens.pop(0))
+            name_param = str(tokens.pop(0))
+            self.subroutine_symboltable.define(name_param, type_param, 'argument')
         while tokens[0].value == ',':
-            # adds ','
-            output += addspaces(numspaces + 1) + str(tokens.pop(0))
+            # pops ','
+            tokens.pop(0)
             # adds type
-            output += addspaces(numspaces + 1) + str(tokens.pop(0))
+            type_param = str(tokens.pop(0))
             # adds varName
-            output += addspaces(numspaces + 1) + str(tokens.pop(0))
-        output += addspaces(numspaces) + '</parameterList>\n'
+            name_param = str(tokens.pop(0))
+            self.subroutine_symboltable.define(name_param, type_param, 'argument')
         # popping the ')'
-        output += addspaces(numspaces) + str(tokens.pop(0))
-        return output, tokens[:]
+        tokens.pop(0)
+        return 0, tokens[:]
 
     def compilevardec(self, tokens, numspaces):
         first = tokens.pop(0)
