@@ -3,6 +3,10 @@
 # nand project 10
 #
 ########################################################
+
+from SymbolTable import *
+from VMWriter import *
+
 BINOP = ['+', '-', '*', '/', '&amp;', '|', '&lt;', '&gt;', '=']
 def addspaces(n):
     str = ''
@@ -32,65 +36,60 @@ class CompilationEngine:
     SUBROUTINE_SCOPE = ['STATIC', 'FIELD']
     CLASS_SCOPE = ['ARG', 'VAR']
 
-
-
-    def __init__(self, tokens):
+    def __init__(self, tokens, file_path):
         self.tokens = tokens
+        self.class_symboltable = SymbolTable()
+        self.subroutine_symboltable = SymbolTable()
+        self.cur_class = None
+        self.vmwriter = VMWriter(file_path)
 
-    def compileclass(self, tokens, numspaces):
+    def compileclass(self, tokens):
         first = tokens.pop(0)
         if not first.isa('KEYWORD') or not first.value == 'class':
             return None, None
-        output = addspaces(numspaces) + '<class>\n'
-        # adds class
-        output += addspaces(numspaces + 1) + str(first)
         # adds class name
-        output += addspaces(numspaces + 1) + str(tokens.pop(0))
-        # adds '{'
-        output += addspaces(numspaces + 1) + str(tokens.pop(0))
+        self.cur_class = str(tokens.pop(0))
+        # pops '{'
+        tokens.pop(0)
         done = False
         while not done:
             done = True
-            newout, newtokens = self.compileclassvar(tokens[:], numspaces + 1)
+            newout, newtokens = self.compileclassvar(tokens[:])
             if newout is not None:
                 done = False
-                output += newout
                 tokens = newtokens
         done = False
         while not done:
             done = True
-            newout, newtokens = self.compilesubroutine(tokens[:], numspaces + 1)
+            newout, newtokens = self.compilesubroutine(tokens[:])
             if newout is not None:
                 done = False
-                output += newout
                 tokens = newtokens
-        # adds '}'
-        output += addspaces(numspaces + 1) + str(tokens.pop(0))
-        output += addspaces(numspaces) + '</class>\n'
-        return output, tokens[:]
+        # pops '}'
+        tokens.pop(0)
+        self.cur_class = None
+        return 0, tokens[:]
 
-    def compileclassvar(self, tokens, numspaces):
+    def compileclassvar(self, tokens):
         first = tokens.pop(0)
         if not first.isa('KEYWORD') or not (first.value == 'static' or first.value == 'field'):
             return None, None
-        output = addspaces(numspaces) + '<classVarDec>\n'
-        # field|static
-        output += addspaces(numspaces + 1) + str(first)
         # type
-        output += addspaces(numspaces + 1) + str(tokens.pop(0))
+        type = str(tokens.pop(0))
         # name
-        output += addspaces(numspaces + 1) + str(tokens.pop(0))
+        name = str(tokens.pop(0))
+        self.class_symboltable.define(name, type, first)
         while tokens[0].value == ',':
-            # ','
-            output += addspaces(numspaces + 1) + str(tokens.pop(0))
+            # pops ','
+            tokens.pop(0)
             # name
-            output += addspaces(numspaces + 1) + str(tokens.pop(0))
+            name =  str(tokens.pop(0))
+            self.class_symboltable.define(name, type, first)
         # pops ';'
-        output += addspaces(numspaces + 1) + str(tokens.pop(0))
-        output += addspaces(numspaces) + '</classVarDec>\n'
-        return output, tokens[:]
+        tokens.pop(0)
+        return 0, tokens[:]
 
-    def compilesubroutine(self, tokens, numspaces):
+    def compilesubroutine(self, tokens):
         first = tokens.pop(0)
         if not (first.isa('KEYWORD') and first.value in 'constructor'
                                                         'function'
