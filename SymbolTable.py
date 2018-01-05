@@ -1,6 +1,6 @@
 class SymbolTable:
 
-    KIND = {'static': 'static', 'field': 'field', 'VAR': 'local', 'ARG': 'argument'}
+    KIND = {'static': 'static', 'field': 'field', 'VAR': 'local', 'argument': 'argument'}
     COUNTER = {'static': 0, 'field': 0}
     def __init__(self):
         self.type = dict()

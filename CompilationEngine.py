@@ -41,6 +41,7 @@ class CompilationEngine:
         self.class_symboltable = SymbolTable()
         self.subroutine_symboltable = SymbolTable()
         self.cur_class = None
+        self.cur_subroutine_type = None # for the compile return function
         self.vmwriter = VMWriter(file_path)
 
     def compileclass(self, tokens):
@@ -95,35 +96,41 @@ class CompilationEngine:
                                                         'function'
                                                         'method'):
             return None, None
-        output = addspaces(numspaces) + '<subroutineDec>\n'
-        # adds function|...
-        output += addspaces(numspaces) + str(first)
+        # initializes symbol table
+        self.subroutine_symboltable.start_subroutine()
         # adds void|type
-        output += addspaces(numspaces + 1) + str(tokens.pop(0))
+        type_func = str(tokens.pop(0))
+        self.cur_subroutine_type = type_func
         # adds subroutine name
-        output += addspaces(numspaces + 1) + str(tokens.pop(0))
-        paraout, tokens = self.compileparameterlist(tokens[:], numspaces + 1)
-        output += paraout
-        output += addspaces(numspaces) + '<subroutineBody>\n'
-        # adds '{'
-        output += addspaces(numspaces + 1) + str(tokens.pop(0))
+        name_func = str(tokens.pop(0))
+        self.vmwriter.write_function(self.cur_class + '.' + name_func, 0) # TODO : check num_locals
+        if first.value == 'constructor':
+            push_index = self.class_symboltable.var_count('field')
+            # push constant num_fields
+            self.vmwriter.write_push(self.CONST, push_index)
+            self.vmwriter.write_call('Memory.alloc', 1)
+            self.vmwriter.write_pop(self.POINTER, 0)
+        elif first.value == 'method':
+            self.subroutine_symboltable.define('this', self.cur_class, 'argument')
+            self.vmwriter.write_push(self.ARG, 0)
+            self.vmwriter.write_pop(self.POINTER, 0)
+        paraout, tokens = self.compileparameterlist(tokens[:])
+        # pops '{'
+        tokens.pop(0)
         done = False
         while not done:
             done = True
-            newout, newtokens = self.compilevardec(tokens[:], numspaces + 1)
+            newout, newtokens = self.compilevardec(tokens[:])
             if newout is not None:
                 done = False
-                output += newout
                 tokens = newtokens
-        newout, newtokens = self.compilestatements(tokens[:], numspaces + 1)
+        newout, newtokens = self.compilestatements(tokens[:])
         if newout is not None:
-            output += newout
             tokens = newtokens
-        # adds '}'
-        output += addspaces(numspaces + 1) + str(tokens.pop(0))
-        output += addspaces(numspaces) + '</subroutineBody>\n'
-        output += addspaces(numspaces) + '</subroutineDec>\n'
-        return output, tokens[:]
+        # pops '}'
+        tokens.pop(0)
+        self.cur_subroutine_type = None
+        return 0, tokens[:]
 
     def compileparameterlist(self, tokens, numspaces):
         first = tokens.pop(0)
