@@ -12,6 +12,25 @@ def addspaces(n):
 
 
 class CompilationEngine:
+    CONST = 1
+    ARG = 2
+    LOCAL = 3
+    STATIC = 4
+    THIS = 5
+    THAT = 6
+    POINTER = 7
+    TEMP = 8
+    ADD = '+'
+    SUB = '-'
+    NEG = '~'
+    EQ = '='
+    GT = '>'
+    LT = '<'
+    AND = '&'
+    OR = '|'
+    NOT = '!'
+
+
 
     def __init__(self, tokens):
         self.tokens = tokens
