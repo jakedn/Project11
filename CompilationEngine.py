@@ -283,16 +283,14 @@ class CompilationEngine:
         first = tokens.pop(0)
         if not first.isa('KEYWORD') or first.value != 'return':
             return None, None
-        output = addspaces(numspaces) + '<returnStatement>\n'
-        # adds 'return'
-        output += addspaces(numspaces + 1) + str(first)
         if tokens[0].value != ';':
             output_exp, tokens = self.compileexpression(tokens[:], numspaces + 1)
-            output += output_exp
         # pops ';'
-        output += addspaces(numspaces + 1) + str(tokens.pop(0))
-        output += addspaces(numspaces) + '</returnStatement>\n'
-        return output, tokens[:]
+        tokens.pop(0)
+        if self.cur_subroutine_type == 'void':
+            self.vmwriter.write_push(self.CONST, 0)
+        self.vmwriter.write_return()
+        return 0, tokens[:]
 
 
     def compileif(self, tokens, numspaces):
