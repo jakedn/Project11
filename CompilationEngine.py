@@ -106,7 +106,19 @@ class CompilationEngine:
         self.cur_subroutine_type = type_func
         # adds subroutine name
         name_func = str(tokens.pop(0))
-        self.vmwriter.write_function(self.cur_class + '.' + name_func, 0) # TODO : check num_locals
+        paraout, tokens = self.compileparameterlist(tokens[:])
+        # pops '{'
+        tokens.pop(0)
+        done = False
+        numlocals = 0
+        while not done:
+            done = True
+            newout, newtokens = self.compilevardec(tokens[:])
+            if newout is not None:
+                done = False
+                tokens = newtokens
+                numlocals += newout
+        self.vmwriter.write_function(self.cur_class + '.' + name_func, numlocals)
         if first.value == 'constructor':
             push_index = self.class_symboltable.var_count('field')
             # push constant num_fields
@@ -117,16 +129,6 @@ class CompilationEngine:
             self.subroutine_symboltable.define('this', self.cur_class, 'argument')
             self.vmwriter.write_push(self.ARG, 0)
             self.vmwriter.write_pop(self.POINTER, 0)
-        paraout, tokens = self.compileparameterlist(tokens[:])
-        # pops '{'
-        tokens.pop(0)
-        done = False
-        while not done:
-            done = True
-            newout, newtokens = self.compilevardec(tokens[:])
-            if newout is not None:
-                done = False
-                tokens = newtokens
         newout, newtokens = self.compilestatements(tokens[:])
         if newout is not None:
             tokens = newtokens
@@ -164,16 +166,18 @@ class CompilationEngine:
         vartype = tokens.pop(0)
         # adds name
         varname = str(tokens.pop(0))
+        varcount = 1
         self.subroutine_symboltable.define(varname, vartype, 'VAR')
         while tokens[0].value == ',':
             # pops ','
             tokens.pop(0)
             # adds name
             varname = str(tokens.pop(0))
+            varcount += 1
             self.subroutine_symboltable.define(varname, vartype, 'VAR')
         # pops ';'
         tokens.pop(0)
-        return 0, tokens[:]
+        return varcount, tokens[:]
 
     def compilestatements(self, tokens):
         done = False
@@ -346,7 +350,7 @@ class CompilationEngine:
         if tokens[1].value == '[':
             # pops varName
             varname = str(tokens.pop(0))
-            varkind = self.subroutine_symboltable.kind_of(varname) 
+            varkind = self.subroutine_symboltable.kind_of(varname)
             if varkind is None:
                 varkind = self.class_symboltable.kind_of(varname)
                 varindex = self.class_symboltable.index_of(varname)
