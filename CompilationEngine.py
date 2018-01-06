@@ -432,11 +432,9 @@ class CompilationEngine:
                     varindex = self.class_symboltable.index_of(varname)
                 varindex = self.subroutine_symboltable.index_of(varname)
                 self.vmwriter.write_push(varkind, varindex)
-            elif constant_token.isa('KEYWORD'):
-                
+            #elif constant_token.isa('KEYWORD'): # TODO : add the keword constant
 
-        output += addspaces(numspaces) + '</term>\n'
-        return output, tokens[:]
+        return 0, tokens[:]
 
     def compileexpressionlist(self, tokens):
         # pops '('
