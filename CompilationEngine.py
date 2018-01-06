@@ -393,7 +393,48 @@ class CompilationEngine:
             output += addspaces(numspaces + 1) + str(tokens.pop(0))
         # includes integerConstant, stringConstant, keywordConstant, varName
         else:
-            const = str(tokens.pop(0))
+            constant_token = tokens.pop(0)
+            if constant_token.isa('STR_CONST'):
+                string_const = constant_token.value
+                self.vmwriter.write_call('String.new(' + str(len(string_const)) + ')', 1)
+                for ch in string_const:
+                    if ch == '\n':
+                        self.vmwriter.write_push(self.CONST, ord('\\'))
+                        self.vmwriter.write_call('String.appendChar', 2)
+                        self.vmwriter.write_push(self.CONST,ord('n'))
+                        self.vmwriter.write_call('String.appendChar', 2)
+                    elif ch == '\t':
+                        self.vmwriter.write_push(self.CONST, ord('\\'))
+                        self.vmwriter.write_call('String.appendChar', 2)
+                        self.vmwriter.write_push(self.CONST, ord('t'))
+                        self.vmwriter.write_call('String.appendChar', 2)
+                    elif ch == '\r':
+                        self.vmwriter.write_push(self.CONST, ord('\\'))
+                        self.vmwriter.write_call('String.appendChar', 2)
+                        self.vmwriter.write_push(self.CONST, ord('r'))
+                        self.vmwriter.write_call('String.appendChar', 2)
+                    elif ch == '\b':
+                        self.vmwriter.write_push(self.CONST, ord('\\'))
+                        self.vmwriter.write_call('String.appendChar', 2)
+                        self.vmwriter.write_push(self.CONST, ord('b'))
+                        self.vmwriter.write_call('String.appendChar', 2)
+                    else:
+                        self.vmwriter.write_push(self.CONST, ord(ch))
+                        self.vmwriter.write_call('String.appendChar', 2)
+            elif constant_token.isa('INT_CONST'):
+                self.vmwriter.write_push(self.CONST, constant_token.value)
+            # var name
+            elif constant_token.isa('IDENTIFIER'):
+                varname = constant_token.value
+                varkind = self.subroutine_symboltable.kind_of(varname) # TODO: again with the nested subroutine
+                if varkind is None:
+                    varkind = self.class_symboltable.kind_of(varname)
+                    varindex = self.class_symboltable.index_of(varname)
+                varindex = self.subroutine_symboltable.index_of(varname)
+                self.vmwriter.write_push(varkind, varindex)
+            elif constant_token.isa('KEYWORD'):
+                
+
         output += addspaces(numspaces) + '</term>\n'
         return output, tokens[:]
 
