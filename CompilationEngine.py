@@ -43,7 +43,7 @@ class CompilationEngine:
         self.cur_class = None
         self.cur_subroutine_type = None # for the compile return function
         self.vmwriter = VMWriter(file_path)
-        self.whilecounter = 0
+        self.labelcounter = 0
 
     def compileclass(self, tokens):
         first = tokens.pop(0)
@@ -259,25 +259,23 @@ class CompilationEngine:
         first = tokens.pop(0)
         if not first.isa('KEYWORD') or first.value != 'while':
             return None, None
-        self.vmwriter.write_label('L' + str(self.whilecounter))
+        self.vmwriter.write_label('L' + str(self.labelcounter))
         # pops '('
         tokens.pop(0)
         outputexp, tokens = self.compileexpression(tokens[:], numspaces + 1)
         # adds ')'
         tokens.pop(0)
         self.vmwriter.write_arithmetic(self.NOT)
-        self.vmwriter.write_if('L' + str(self.whilecounter + 1))
+        self.vmwriter.write_if('L' + str(self.labelcounter + 1))
         # pops '{'
         tokens.pop(0)
         # adds statements
         out_statements, tokens = self.compilestatements(tokens[:], numspaces + 1)
-        self.vmwriter.write_goto('L' + str(self.whilecounter))
+        self.vmwriter.write_goto('L' + str(self.labelcounter))
         # pops '}'
         tokens.pop(0)
-        self.whilecounter += 2
+        self.labelcounter += 2
         return 0, tokens[:]
-
-
 
     def compilereturn(self, tokens, numspaces):
         first = tokens.pop(0)
@@ -293,38 +291,36 @@ class CompilationEngine:
         return 0, tokens[:]
 
 
-    def compileif(self, tokens, numspaces):
+    def compileif(self, tokens):
         first = tokens.pop(0)
         if not first.isa('KEYWORD') or first.value != 'if':
             return None, None
-        output = addspaces(numspaces) + '<ifStatement>\n'
-        # adds 'if'
-        output += addspaces(numspaces + 1) + str(first)
-        # adds '('
-        output += addspaces(numspaces + 1) + str(tokens.pop(0))
-        outputexp, tokens = self.compileexpression(tokens[:], numspaces + 1)
-        output += outputexp
-        # adds ')'
-        output += addspaces(numspaces + 1) + str(tokens.pop(0))
-        # adds '{'
-        output += addspaces(numspaces + 1) + str(tokens.pop(0))
+        # pops '('
+        tokens.pop(0)
+        outputexp, tokens = self.compileexpression(tokens[:])
+        # pops ')'
+        tokens.pop(0)
+        self.vmwriter.write_if('L' + str(self.labelcounter))
+        # pops '{'
+        tokens.pop(0)
         # adds statements
-        out_statements, tokens = self.compilestatements(tokens[:], numspaces + 1)
-        output += out_statements
-        # adds '}'
-        output += addspaces(numspaces + 1) + str(tokens.pop(0))
+        out_statements, tokens = self.compilestatements(tokens[:])
+        # pops '}'
+        tokens.pop(0)
+        self.vmwriter.write_goto('L' + str(self.labelcounter + 1))
+        self.vmwriter.write_label('L' + str(self.labelcounter))
         if tokens[0].isa('KEYWORD') and tokens[0].value == 'else':
-            # adds 'else'
-            output += addspaces(numspaces + 1) + str(tokens.pop(0))
-            # adds '{'
-            output += addspaces(numspaces + 1) + str(tokens.pop(0))
+            # pops 'else'
+            tokens.pop(0)
+            # pops '{'
+            tokens.pop(0)
             # adds statements
-            out_statements, tokens = self.compilestatements(tokens[:], numspaces + 1)
-            output += out_statements
-            # adds '}'
-            output += addspaces(numspaces + 1) + str(tokens.pop(0))
-        output += addspaces(numspaces) + '</ifStatement>\n'
-        return output, tokens[:]
+            out_statements, tokens = self.compilestatements(tokens[:])
+            # pops '}'
+            tokens.pop(0)
+        self.vmwriter.write_label('L' + str(self.labelcounter + 1))
+        self.labelcounter += 2
+        return 0, tokens[:]
 
     def compileexpression(self, tokens, numspaces):
         output = addspaces(numspaces) + '<expression>\n'
