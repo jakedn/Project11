@@ -310,6 +310,7 @@ class CompilationEngine:
         outputexp, tokens = self.compileexpression(tokens[:])
         # pops ')'
         tokens.pop(0)
+        self.vmwriter.write_arithmetic(self.NOT)
         self.vmwriter.write_if('L' + str(label1))
         # pops '{'
         tokens.pop(0)
