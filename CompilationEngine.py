@@ -188,61 +188,70 @@ class CompilationEngine:
         output += addspaces(numspaces) + '</statements>\n'
         return output, tokens[:]
 
-    def compiledo(self, tokens, numspaces):
+    def compiledo(self, tokens):
         first = tokens.pop(0)
         if not first.isa('KEYWORD') or first.value != 'do':
             return None, None
-        output = addspaces(numspaces) + '<doStatement>\n'
-        # pops 'do'
-        output += addspaces(numspaces + 1) + str(first)
         if tokens[1].value != '.' or not tokens[1].isa('SYMBOL'):
             # pops name
-            output += addspaces(numspaces + 1) + str(tokens.pop(0))
-            out_explist, tokens = self.compileexpressionlist(tokens[:], numspaces + 1)
-            output += out_explist
+            name = tokens.pop(0)
+            out_explist, tokens = self.compileexpressionlist(tokens[:])
+            self.vmwriter.write_call(self.cur_class + '.' + name, out_explist)
         else:
             # pops name
-            output += addspaces(numspaces + 1) + str(tokens.pop(0))
+            name = str(tokens.pop(0))
             # pops '.'
-            output += addspaces(numspaces + 1) + str(tokens.pop(0))
+            tokens.pop(0)
             # pops subname
-            output += addspaces(numspaces + 1) + str(tokens.pop(0))
-            out_explist, tokens = self.compileexpressionlist(tokens[:], numspaces + 1)
-            output += out_explist
+            subname = str(tokens.pop(0))
+            out_explist, tokens = self.compileexpressionlist(tokens[:])
+            self.vmwriter.write_call(name + '.' + subname, out_explist)
         # pops ';'
-        output += addspaces(numspaces + 1) + str(tokens.pop(0))
-        output += addspaces(numspaces) + '</doStatement>\n'
-        return output, tokens[:]
+        tokens.pop(0)
+        return 0, tokens[:]
 
-
-    def compilelet(self, tokens, numspaces):
+    def compilelet(self, tokens):
         first = tokens.pop(0)
         if not first.isa('KEYWORD') or first.value != 'let':
             return None, None
-        output = addspaces(numspaces) + '<letStatement>\n'
-        # adds 'let'
-        output += addspaces(numspaces + 1) + str(first)
         # checks if varName[expression] or varName
         if tokens[1].value == '[':
             # adds varName
-            output += addspaces(numspaces + 1) + str(tokens.pop(0))
+            varname = str(tokens.pop(0))
+            varkind = self.subroutine_symboltable.kind_of(varname)
+            if varkind is None:
+                varkind = self.class_symboltable.kind_of(varname)
+                varindex = self.class_symboltable.index_of(varname)
+            else:
+                varindex = self.subroutine_symboltable.index_of(varname)
+            self.vmwriter.write_push(varkind, varindex)
             # adds '['
-            output += addspaces(numspaces + 1) + str(tokens.pop(0))
-            outcomp, tokens = self.compileexpression(tokens[:], numspaces + 1)
-            output += outcomp
+            tokens.pop(0)
+            outcomp, tokens = self.compileexpression(tokens[:]) # pushes something
             # adds ']'
-            output += addspaces(numspaces + 1) + str(tokens.pop(0))
+            tokens.pop(0)
+            self.vmwriter.write_arithmetic(self.ADD)
+            self.vmwriter.write_pop(self.POINTER, 1)
+            # pops '='
+            tokens.pop(0)
+            out_expr, tokens = self.compileexpression(tokens[:])  # pushes something
+            self.vmwriter.write_pop(self.THAT, 0)
         else:
             # adds varName
-            output += addspaces(numspaces + 1) + str(tokens.pop(0))
-        # adds '='
-        output += addspaces(numspaces + 1) + str(tokens.pop(0))
-        out_expr, tokens = self.compileexpression(tokens[:], numspaces + 1)
-        output += out_expr
-        # adds ';'
-        output += addspaces(numspaces + 1) + str(tokens.pop(0))
-        output += addspaces(numspaces) + '</letStatement>\n'
-        return output, tokens[:]
+            varname = str(tokens.pop(0))
+            varkind = self.subroutine_symboltable.kind_of(varname)
+            if varkind is None:
+                varkind = self.class_symboltable.kind_of(varname)
+                varindex = self.class_symboltable.index_of(varname)
+            else:
+                varindex = self.subroutine_symboltable.index_of(varname)
+            # pops '='
+            tokens.pop(0)
+            out_expr, tokens = self.compileexpression(tokens[:])  # pushes something
+            self.vmwriter.write_pop(varkind, varindex)
+        # pops ';'
+        tokens.pop(0)
+        return 0, tokens[:]
 
     def compilewhile(self, tokens, numspaces):
         first = tokens.pop(0)
@@ -385,24 +394,21 @@ class CompilationEngine:
         output += addspaces(numspaces) + '</term>\n'
         return output, tokens[:]
 
-
-
-    def compileexpressionlist(self, tokens, numspaces):
-        # adds '('
-        output = addspaces(numspaces) + str(tokens.pop(0))
-        output += addspaces(numspaces) + '<expressionList>\n'
+    def compileexpressionlist(self, tokens):
+        # pops '('
+        tokens.pop(0)
+        args_count = 0
         firstiter = True
         while not (tokens[0].value == ')'):
             if tokens[0].value == ',' and not firstiter:
                 # pops ','
-                output += addspaces(numspaces + 1) + str(tokens.pop(0))
+                tokens.pop(0)
             firstiter = False
-            exp_output, tokens = self.compileexpression(tokens[:], numspaces + 1)
-            output += exp_output
-        output += addspaces(numspaces) + '</expressionList>\n'
+            exp_output, tokens = self.compileexpression(tokens[:])
+            args_count += 1
         # pops ')'
-        output += addspaces(numspaces) + str(tokens.pop(0))
-        return output, tokens[:]
+        tokens.pop(0)
+        return args_count, tokens[:]
 
     def getstatements(self):
         return [self.compiledo, self.compilelet, self.compileif, self.compilewhile, self.compilereturn]
