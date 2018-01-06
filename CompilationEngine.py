@@ -153,26 +153,24 @@ class CompilationEngine:
         tokens.pop(0)
         return 0, tokens[:]
 
-    def compilevardec(self, tokens, numspaces):
+    def compilevardec(self, tokens):
         first = tokens.pop(0)
         if not (first.isa('KEYWORD') and first.value == 'var'):
             return None, None
-        output = addspaces(numspaces) + '<varDec>\n'
-        # adds 'var'
-        output += addspaces(numspaces + 1) + str(first)
         # adds type
-        output += addspaces(numspaces + 1) + str(tokens.pop(0))
+        vartype = tokens.pop(0)
         # adds name
-        output += addspaces(numspaces + 1) + str(tokens.pop(0))
+        varname = str(tokens.pop(0))
+        self.subroutine_symboltable.define(varname, vartype, 'VAR')
         while tokens[0].value == ',':
-            # adds ','
-            output += addspaces(numspaces + 1) + str(tokens.pop(0))
+            # pops ','
+            tokens.pop(0)
             # adds name
-            output += addspaces(numspaces + 1) + str(tokens.pop(0))
-        # adds ';'
-        output += addspaces(numspaces + 1) + str(tokens.pop(0))
-        output += addspaces(numspaces) + '</varDec>\n'
-        return output, tokens[:]
+            varname = str(tokens.pop(0))
+            self.subroutine_symboltable.define(varname, vartype, 'VAR')
+        # pops ';'
+        tokens.pop(0)
+        return 0, tokens[:]
 
     def compilestatements(self, tokens, numspaces):
         output = addspaces(numspaces) + '<statements>\n'
@@ -227,7 +225,7 @@ class CompilationEngine:
             self.vmwriter.write_push(varkind, varindex)
             # adds '['
             tokens.pop(0)
-            outcomp, tokens = self.compileexpression(tokens[:]) # pushes something
+            outcomp, tokens = self.compileexpression(tokens[:])  # pushes something
             # adds ']'
             tokens.pop(0)
             self.vmwriter.write_arithmetic(self.ADD)
