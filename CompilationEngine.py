@@ -231,10 +231,12 @@ class CompilationEngine:
             # adds ']'
             tokens.pop(0)
             self.vmwriter.write_arithmetic(self.ADD)
-            self.vmwriter.write_pop(self.POINTER, 1)
             # pops '='
             tokens.pop(0)
             out_expr, tokens = self.compileexpression(tokens[:])  # pushes something
+            self.vmwriter.write_pop(self.TEMP, 0)
+            self.vmwriter.write_pop(self.POINTER, 1)
+            self.vmwriter.write_push(self.TEMP, 0)
             self.vmwriter.write_pop(self.THAT, 0)
         else:
             # adds varName
