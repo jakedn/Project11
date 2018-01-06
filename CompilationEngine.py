@@ -337,16 +337,24 @@ class CompilationEngine:
         return output, tokens[:]
 
 
-    def compileterm(self, tokens, numspaces):
+    def compileterm(self, tokens):
         # if the term is varName[expression]
         if tokens[1].value == '[':
             # pops varName
             varname = str(tokens.pop(0))
+            varkind = self.subroutine_symboltable.kind_of(varname) # TODO : check option of nested subroutines
+            if varkind is None:
+                varkind = self.class_symboltable.kind_of(varname)
+                varindex = self.class_symboltable.index_of(varname)
+            else:
+                varindex = self.subroutine_symboltable.index_of(varname)
+            self.vmwriter.write_push(varkind, varindex)
             # pops '['
             tokens.pop(0)
-            expression_output, tokens = self.compileexpression(tokens[:])
+            expression_output, tokens = self.compileexpression(tokens[:]) # pushes something
             # pops ']'
-            output += addspaces(numspaces + 1) + str(tokens.pop(0))
+            tokens.pop(0)
+            self.vmwriter.write_arithmetic(self.ADD)
         # if the term is subroutineName(expressionList)
         elif tokens[1].value == '(' and tokens[0].isa('IDENTIFIER'):
             # pops subroutineName
