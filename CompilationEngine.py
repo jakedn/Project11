@@ -94,6 +94,7 @@ class CompilationEngine:
         return 0, tokens[:]
 
     def compilesubroutine(self, tokens):
+        # TODO: make sure correctness
         first = tokens.pop(0)
         if not (first.isa('KEYWORD') and first.value in 'constructor'
                                                         'function'
@@ -367,21 +368,20 @@ class CompilationEngine:
             self.vmwriter.write_push(self.THAT, 0)
         # if the term is subroutineName(expressionList)
         elif tokens[1].value == '(' and tokens[0].isa('IDENTIFIER'):
-            # pops subroutineName
-            output += addspaces(numspaces + 1) + str(tokens.pop(0))
-            expressionl_output, tokens = self.compileexpressionlist(tokens[:], numspaces + 1)
-            output += expressionl_output
+            # pops name
+            name = tokens.pop(0)
+            out_explist, tokens = self.compileexpressionlist(tokens[:])
+            self.vmwriter.write_call(self.cur_class + '.' + name, out_explist)
         # if the term is (className|varName).subroutineName(expressionList)
         elif tokens[1].value == '.':
-            # pops className|varName
-            output += addspaces(numspaces + 1) + str(tokens.pop(0))
-            while tokens[0].value == '.':
-                # pops '.'
-                output += addspaces(numspaces + 1) + str(tokens.pop(0))
-                # pops subroutineName
-                output += addspaces(numspaces + 1) + str(tokens.pop(0))
-            out_expr, tokens = self.compileexpressionlist(tokens[:], numspaces + 1)
-            output += out_expr
+            # pops name
+            name = str(tokens.pop(0))
+            # pops '.'
+            tokens.pop(0)
+            # pops subname
+            subname = str(tokens.pop(0))
+            out_explist, tokens = self.compileexpressionlist(tokens[:])
+            self.vmwriter.write_call(name + '.' + subname, out_explist)
         # unary operator
         elif tokens[0].value == '~' or tokens[0].value == '-':
             # adds op
@@ -395,10 +395,9 @@ class CompilationEngine:
         elif tokens[0].value == '(':
             # pops '('
             tokens.pop(0)
-            output_expression, tokens = self.compileexpression(tokens[:], numspaces + 1)
-            output += output_expression
+            output_expression, tokens = self.compileexpression(tokens[:])
             # pops ')'
-            output += addspaces(numspaces + 1) + str(tokens.pop(0))
+            tokens.pop(0)
         # includes integerConstant, stringConstant, keywordConstant, varName
         else:
             constant_token = tokens.pop(0)
