@@ -377,20 +377,23 @@ class CompilationEngine:
         # unary operator
         elif tokens[0].value == '~' or tokens[0].value == '-':
             # adds op
-            output += addspaces(numspaces + 1) + str(tokens.pop(0))
-            output_term, tokens = self.compileterm(tokens[:], numspaces + 1)
-            output += output_term
+            operator = str(tokens.pop(0))
+            output_term, tokens = self.compileterm(tokens[:])  # pushes something
+            if operator == '~':
+                self.vmwriter.write_arithmetic(self.NOT)
+            elif operator == '-':
+                self.vmwriter.write_arithmetic(self.NEG)
         # (expression)
         elif tokens[0].value == '(':
             # pops '('
-            output += addspaces(numspaces + 1) + str(tokens.pop(0))
+            tokens.pop(0)
             output_expression, tokens = self.compileexpression(tokens[:], numspaces + 1)
             output += output_expression
             # pops ')'
             output += addspaces(numspaces + 1) + str(tokens.pop(0))
         # includes integerConstant, stringConstant, keywordConstant, varName
         else:
-            output += addspaces(numspaces + 1) + str(tokens.pop(0))
+            const = str(tokens.pop(0))
         output += addspaces(numspaces) + '</term>\n'
         return output, tokens[:]
 
