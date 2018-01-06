@@ -33,6 +33,8 @@ class CompilationEngine:
     AND = '&'
     OR = '|'
     NOT = '!'
+    DIVIDE = '/'
+    MULTIPLY = '*'
     SUBROUTINE_SCOPE = ['STATIC', 'FIELD']
     CLASS_SCOPE = ['ARG', 'VAR']
 
@@ -319,22 +321,24 @@ class CompilationEngine:
         self.labelcounter += 2
         return 0, tokens[:]
 
-    def compileexpression(self, tokens, numspaces):
-        output = addspaces(numspaces) + '<expression>\n'
-        term_out, tokens = self.compileterm(tokens[:], numspaces + 1)
-        output += term_out
+    def compileexpression(self, tokens):
+        term_out, tokens = self.compileterm(tokens[:])
         done = False
         while not done:
             done = True
             if tokens[0].value in BINOP:
                 done = False
                 # adds the BINOP
-                output += addspaces(numspaces + 1) + str(tokens.pop(0))
+                binop = str(tokens.pop(0))
                 # adds term
-                term_output, tokens = self.compileterm(tokens[:], numspaces + 1)
-                output += term_output
-        output += addspaces(numspaces) + '</expression>\n'
-        return output, tokens[:]
+                term_output, tokens = self.compileterm(tokens[:])
+                if binop == '*':
+                    self.vmwriter.write_call('Math.multiply', 2)
+                elif binop == '/':
+                    self.vmwriter.write_call('Math.divide', 2)
+                else:
+                    self.vmwriter.write_arithmetic(binop)
+        return 0, tokens[:]
 
 
     def compileterm(self, tokens):
