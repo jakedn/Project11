@@ -346,7 +346,7 @@ class CompilationEngine:
         if tokens[1].value == '[':
             # pops varName
             varname = str(tokens.pop(0))
-            varkind = self.subroutine_symboltable.kind_of(varname) # TODO : check option of nested subroutines
+            varkind = self.subroutine_symboltable.kind_of(varname) 
             if varkind is None:
                 varkind = self.class_symboltable.kind_of(varname)
                 varindex = self.class_symboltable.index_of(varname)
@@ -430,7 +430,7 @@ class CompilationEngine:
             # var name
             elif constant_token.isa('IDENTIFIER'):
                 varname = constant_token.value
-                varkind = self.subroutine_symboltable.kind_of(varname) # TODO: again with the nested subroutine
+                varkind = self.subroutine_symboltable.kind_of(varname)
                 if varkind is None:
                     varkind = self.class_symboltable.kind_of(varname)
                     varindex = self.class_symboltable.index_of(varname)
