@@ -52,7 +52,7 @@ class CompilationEngine:
         if not first.isa('KEYWORD') or not first.value == 'class':
             return None, None
         # adds class name
-        self.cur_class = str(tokens.pop(0))
+        self.cur_class = tokens.pop(0).value
         # pops '{'
         tokens.pop(0)
         done = False
@@ -79,15 +79,15 @@ class CompilationEngine:
         if not first.isa('KEYWORD') or not (first.value == 'static' or first.value == 'field'):
             return None, None
         # type
-        type = str(tokens.pop(0))
+        type = tokens.pop(0).value
         # name
-        name = str(tokens.pop(0))
+        name = tokens.pop(0).value
         self.class_symboltable.define(name, type, first)
         while tokens[0].value == ',':
             # pops ','
             tokens.pop(0)
             # name
-            name =  str(tokens.pop(0))
+            name = tokens.pop(0).value
             self.class_symboltable.define(name, type, first)
         # pops ';'
         tokens.pop(0)
@@ -103,10 +103,10 @@ class CompilationEngine:
         # initializes symbol table
         self.subroutine_symboltable.start_subroutine()
         # adds void|type
-        type_func = str(tokens.pop(0))
+        type_func = tokens.pop(0).value
         self.cur_subroutine_type = type_func
         # adds subroutine name
-        name_func = str(tokens.pop(0))
+        name_func = tokens.pop(0).value
         paraout, tokens = self.compileparameterlist(tokens[:])
         # pops '{'
         tokens.pop(0)
@@ -143,17 +143,17 @@ class CompilationEngine:
         # first token is '('
         if tokens[0].value != ')':
             # adds type
-            type_param = str(tokens.pop(0))
+            type_param = tokens.pop(0).value
             # adds varName
-            name_param = str(tokens.pop(0))
+            name_param = tokens.pop(0).value
             self.subroutine_symboltable.define(name_param, type_param, 'argument')
         while tokens[0].value == ',':
             # pops ','
             tokens.pop(0)
             # adds type
-            type_param = str(tokens.pop(0))
+            type_param = tokens.pop(0).value
             # adds varName
-            name_param = str(tokens.pop(0))
+            name_param = tokens.pop(0).value
             self.subroutine_symboltable.define(name_param, type_param, 'argument')
         # popping the ')'
         tokens.pop(0)
@@ -166,14 +166,14 @@ class CompilationEngine:
         # adds type
         vartype = tokens.pop(0)
         # adds name
-        varname = str(tokens.pop(0))
+        varname = tokens.pop(0).value
         varcount = 1
         self.subroutine_symboltable.define(varname, vartype, 'VAR')
         while tokens[0].value == ',':
             # pops ','
             tokens.pop(0)
             # adds name
-            varname = str(tokens.pop(0))
+            varname = tokens.pop(0).value
             varcount += 1
             self.subroutine_symboltable.define(varname, vartype, 'VAR')
         # pops ';'
@@ -202,11 +202,11 @@ class CompilationEngine:
             self.vmwriter.write_call(self.cur_class + '.' + name, out_explist)
         else:
             # pops name
-            name = str(tokens.pop(0))
+            name = tokens.pop(0).value
             # pops '.'
             tokens.pop(0)
             # pops subname
-            subname = str(tokens.pop(0))
+            subname = tokens.pop(0).value
             out_explist, tokens = self.compileexpressionlist(tokens[:])
             self.vmwriter.write_call(name + '.' + subname, out_explist)
         self.vmwriter.write_pop(self.TEMP, 0)
@@ -221,7 +221,7 @@ class CompilationEngine:
         # checks if varName[expression] or varName
         if tokens[1].value == '[':
             # adds varName
-            varname = str(tokens.pop(0))
+            varname = tokens.pop(0).value
             varkind = self.subroutine_symboltable.kind_of(varname)
             if varkind is None:
                 varkind = self.class_symboltable.kind_of(varname)
@@ -244,7 +244,7 @@ class CompilationEngine:
             self.vmwriter.write_pop(self.THAT, 0)
         else:
             # adds varName
-            varname = str(tokens.pop(0))
+            varname = tokens.pop(0).value
             varkind = self.subroutine_symboltable.kind_of(varname)
             if varkind is None:
                 varkind = self.class_symboltable.kind_of(varname)
@@ -259,34 +259,37 @@ class CompilationEngine:
         tokens.pop(0)
         return 0, tokens[:]
 
-    def compilewhile(self, tokens, numspaces):
+    def compilewhile(self, tokens):
         first = tokens.pop(0)
         if not first.isa('KEYWORD') or first.value != 'while':
             return None, None
-        self.vmwriter.write_label('L' + str(self.labelcounter))
+        label1 = self.labelcounter
+        label2 = self.labelcounter + 1
+        self.labelcounter += 2
+        self.vmwriter.write_label('L' + str(label1))
         # pops '('
         tokens.pop(0)
-        outputexp, tokens = self.compileexpression(tokens[:], numspaces + 1)
+        outputexp, tokens = self.compileexpression(tokens[:])
         # adds ')'
         tokens.pop(0)
         self.vmwriter.write_arithmetic(self.NOT)
-        self.vmwriter.write_if('L' + str(self.labelcounter + 1))
+        self.vmwriter.write_if('L' + str(label2))
         # pops '{'
         tokens.pop(0)
         # adds statements
-        out_statements, tokens = self.compilestatements(tokens[:], numspaces + 1)
-        self.vmwriter.write_goto('L' + str(self.labelcounter))
+        out_statements, tokens = self.compilestatements(tokens[:])
+        self.vmwriter.write_goto('L' + str(label1))
+        self.vmwriter.write_label('L' + str(label2))
         # pops '}'
         tokens.pop(0)
-        self.labelcounter += 2
         return 0, tokens[:]
 
-    def compilereturn(self, tokens, numspaces):
+    def compilereturn(self, tokens):
         first = tokens.pop(0)
         if not first.isa('KEYWORD') or first.value != 'return':
             return None, None
         if tokens[0].value != ';':
-            output_exp, tokens = self.compileexpression(tokens[:], numspaces + 1)
+            output_exp, tokens = self.compileexpression(tokens[:])
         # pops ';'
         tokens.pop(0)
         if self.cur_subroutine_type == 'void':
@@ -301,18 +304,21 @@ class CompilationEngine:
             return None, None
         # pops '('
         tokens.pop(0)
+        label1 = self.labelcounter
+        label2 = self.labelcounter + 1
+        self.labelcounter += 2
         outputexp, tokens = self.compileexpression(tokens[:])
         # pops ')'
         tokens.pop(0)
-        self.vmwriter.write_if('L' + str(self.labelcounter))
+        self.vmwriter.write_if('L' + str(label1))
         # pops '{'
         tokens.pop(0)
         # adds statements
         out_statements, tokens = self.compilestatements(tokens[:])
         # pops '}'
         tokens.pop(0)
-        self.vmwriter.write_goto('L' + str(self.labelcounter + 1))
-        self.vmwriter.write_label('L' + str(self.labelcounter))
+        self.vmwriter.write_goto('L' + str(label2))
+        self.vmwriter.write_label('L' + str(label1))
         if tokens[0].isa('KEYWORD') and tokens[0].value == 'else':
             # pops 'else'
             tokens.pop(0)
@@ -322,8 +328,7 @@ class CompilationEngine:
             out_statements, tokens = self.compilestatements(tokens[:])
             # pops '}'
             tokens.pop(0)
-        self.vmwriter.write_label('L' + str(self.labelcounter + 1))
-        self.labelcounter += 2
+        self.vmwriter.write_label('L' + str(label2))
         return 0, tokens[:]
 
     def compileexpression(self, tokens):
@@ -334,7 +339,7 @@ class CompilationEngine:
             if tokens[0].value in BINOP:
                 done = False
                 # adds the BINOP
-                binop = str(tokens.pop(0))
+                binop = self.symboltostring(tokens.pop(0).value)
                 # adds term
                 term_output, tokens = self.compileterm(tokens[:])
                 if binop == '*':
@@ -350,7 +355,7 @@ class CompilationEngine:
         # if the term is varName[expression]
         if tokens[1].value == '[':
             # pops varName
-            varname = str(tokens.pop(0))
+            varname = tokens.pop(0).value
             varkind = self.subroutine_symboltable.kind_of(varname)
             if varkind is None:
                 varkind = self.class_symboltable.kind_of(varname)
@@ -375,17 +380,17 @@ class CompilationEngine:
         # if the term is (className|varName).subroutineName(expressionList)
         elif tokens[1].value == '.':
             # pops name
-            name = str(tokens.pop(0))
+            name = tokens.pop(0).value
             # pops '.'
             tokens.pop(0)
             # pops subname
-            subname = str(tokens.pop(0))
+            subname = tokens.pop(0).value
             out_explist, tokens = self.compileexpressionlist(tokens[:])
             self.vmwriter.write_call(name + '.' + subname, out_explist)
         # unary operator
         elif tokens[0].value == '~' or tokens[0].value == '-':
             # adds op
-            operator = str(tokens.pop(0))
+            operator = tokens.pop(0).value
             output_term, tokens = self.compileterm(tokens[:])  # pushes something
             if operator == '~':
                 self.vmwriter.write_arithmetic(self.NOT)
@@ -403,7 +408,8 @@ class CompilationEngine:
             constant_token = tokens.pop(0)
             if constant_token.isa('STR_CONST'):
                 string_const = constant_token.value
-                self.vmwriter.write_call('String.new(' + str(len(string_const)) + ')', 1)
+                self.vmwriter.write_push(self.CONST, len(string_const))
+                self.vmwriter.write_call('String.new', 1)
                 for ch in string_const:
                     if ch == '\n':
                         self.vmwriter.write_push(self.CONST, ord('\\'))
@@ -437,7 +443,8 @@ class CompilationEngine:
                 if varkind is None:
                     varkind = self.class_symboltable.kind_of(varname)
                     varindex = self.class_symboltable.index_of(varname)
-                varindex = self.subroutine_symboltable.index_of(varname)
+                else:
+                    varindex = self.subroutine_symboltable.index_of(varname)
                 self.vmwriter.write_push(varkind, varindex)
             elif constant_token.isa('KEYWORD'):
                 keyword = constant_token.value
@@ -470,3 +477,15 @@ class CompilationEngine:
 
     def getstatements(self):
         return [self.compiledo, self.compilelet, self.compileif, self.compilewhile, self.compilereturn]
+
+    def symboltostring(self, str1):
+        if str1 == '&gt;':
+            return '>'
+        if str1 == '&lt;':
+            return '<'
+        if str1 == '&amp;':
+            return '&'
+        return str1
+
+    def close(self):
+        self.vmwriter.close()

@@ -3,7 +3,7 @@ from os.path import basename
 
 class VMWriter:
 
-    SEGMENTS = {1: 'constant', 2: 'argument', 3: 'local', 4: 'static', 5: 'this', 6: 'that', 7: 'pointer', 8: 'temp'}
+    SEGMENTS = {1: 'constant', 'argument': 'argument', 'local': 'local', 'static': 'static', 5: 'this', 6: 'that', 7: 'pointer', 8: 'temp'}
     ARITHMETIC = {'+': 'add', '-': 'sub', '~': 'neg', '=': 'eq', '>': 'gt', '<': 'lt', '&': 'and', '|': 'or', '!': 'not'}
 
     def __init__(self, file_path):
@@ -11,8 +11,8 @@ class VMWriter:
         constructor
         :param file_path: file directory path
         """
-        self.file_name = basename(file_path)[:-3]
-        self.file = open(file_path[0:-3]+'.vm', "w")
+        self.file_name = basename(file_path)[:-4]
+        self.file = open(file_path[0:-4]+'vm', "w")
 
     def write_push(self, segment, index):
         towrite = 'push ' + self.SEGMENTS[segment] + ' ' + str(index) + '\n'
