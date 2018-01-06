@@ -173,19 +173,16 @@ class CompilationEngine:
         tokens.pop(0)
         return 0, tokens[:]
 
-    def compilestatements(self, tokens, numspaces):
-        output = addspaces(numspaces) + '<statements>\n'
+    def compilestatements(self, tokens):
         done = False
         while not done:
             done = True
             for func in self.getstatements():
-                newout, newtokens = func(tokens[:], numspaces + 1)
+                newout, newtokens = func(tokens[:])
                 if newout is not None:
                     done = False
-                    output += newout
                     tokens = newtokens
-        output += addspaces(numspaces) + '</statements>\n'
-        return output, tokens[:]
+        return 0, tokens[:]
 
     def compiledo(self, tokens):
         first = tokens.pop(0)
@@ -341,15 +338,13 @@ class CompilationEngine:
 
 
     def compileterm(self, tokens, numspaces):
-        output = addspaces(numspaces) + '<term>\n'
         # if the term is varName[expression]
         if tokens[1].value == '[':
             # pops varName
-            output += addspaces(numspaces + 1) + str(tokens.pop(0))
+            varname = str(tokens.pop(0))
             # pops '['
-            output += addspaces(numspaces + 1) + str(tokens.pop(0))
-            expression_output, tokens = self.compileexpression(tokens[:], numspaces + 1)
-            output += expression_output
+            tokens.pop(0)
+            expression_output, tokens = self.compileexpression(tokens[:])
             # pops ']'
             output += addspaces(numspaces + 1) + str(tokens.pop(0))
         # if the term is subroutineName(expressionList)
