@@ -436,7 +436,16 @@ class CompilationEngine:
                     varindex = self.class_symboltable.index_of(varname)
                 varindex = self.subroutine_symboltable.index_of(varname)
                 self.vmwriter.write_push(varkind, varindex)
-            #elif constant_token.isa('KEYWORD'): # TODO : add the keword constant
+            elif constant_token.isa('KEYWORD'):
+                keyword = constant_token.value
+                if keyword == 'true':
+                    self.vmwriter.write_push(self.CONST, 0)
+                    self.vmwriter.write_arithmetic(self.NOT)
+                elif keyword == 'false' or keyword == 'null':
+                    self.vmwriter.write_push(self.CONST, 0)
+                elif keyword == 'this':
+                    self.vmwriter.write_push('argument', 0)  # TODO: make sure correctness
+
 
         return 0, tokens[:]
 
