@@ -43,6 +43,7 @@ class CompilationEngine:
         self.cur_class = None
         self.cur_subroutine_type = None # for the compile return function
         self.vmwriter = VMWriter(file_path)
+        self.whilecounter = 0
 
     def compileclass(self, tokens):
         first = tokens.pop(0)
@@ -257,24 +258,23 @@ class CompilationEngine:
         first = tokens.pop(0)
         if not first.isa('KEYWORD') or first.value != 'while':
             return None, None
-        output = addspaces(numspaces) + '<whileStatement>\n'
-        # adds 'while'
-        output += addspaces(numspaces + 1) + str(first)
-        # adds '('
-        output += addspaces(numspaces + 1) + str(tokens.pop(0))
+        self.vmwriter.write_label('L' + str(self.whilecounter))
+        # pops '('
+        tokens.pop(0)
         outputexp, tokens = self.compileexpression(tokens[:], numspaces + 1)
-        output += outputexp
         # adds ')'
-        output += addspaces(numspaces + 1) + str(tokens.pop(0))
-        # adds '{'
-        output += addspaces(numspaces + 1) + str(tokens.pop(0))
+        tokens.pop(0)
+        self.vmwriter.write_arithmetic(self.NOT)
+        self.vmwriter.write_if('L' + str(self.whilecounter + 1))
+        # pops '{'
+        tokens.pop(0)
         # adds statements
         out_statements, tokens = self.compilestatements(tokens[:], numspaces + 1)
-        output += out_statements
-        # adds '}'
-        output += addspaces(numspaces + 1) + str(tokens.pop(0))
-        output += addspaces(numspaces) + '</whileStatement>\n'
-        return output, tokens[:]
+        self.vmwriter.write_goto('L' + str(self.whilecounter))
+        # pops '}'
+        tokens.pop(0)
+        self.whilecounter += 2
+        return 0, tokens[:]
 
 
 
