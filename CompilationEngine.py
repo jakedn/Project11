@@ -205,6 +205,7 @@ class CompilationEngine:
             subname = str(tokens.pop(0))
             out_explist, tokens = self.compileexpressionlist(tokens[:])
             self.vmwriter.write_call(name + '.' + subname, out_explist)
+        # TODO : if called method is void must pop temp 0
         # pops ';'
         tokens.pop(0)
         return 0, tokens[:]
