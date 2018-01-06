@@ -355,6 +355,8 @@ class CompilationEngine:
             # pops ']'
             tokens.pop(0)
             self.vmwriter.write_arithmetic(self.ADD)
+            self.vmwriter.write_pop(self.POINTER, 1)
+            self.vmwriter.write_push(self.THAT, 0)
         # if the term is subroutineName(expressionList)
         elif tokens[1].value == '(' and tokens[0].isa('IDENTIFIER'):
             # pops subroutineName
