@@ -8,7 +8,7 @@ ttest: Tokenizer.py tokentest.py
 	python tokentest.py something.jack
 
 git: 
-	git add $(FILES) README Makefile
+	git add $(FILES) README Makefile Pong
 	git commit -m"from makefile"
 	git push
 
