@@ -7,7 +7,7 @@
 from SymbolTable import *
 from VMWriter import *
 
-BINOP = ['+', '-', '*', '/', '&amp;', '|', '&lt;', '&gt;', '=']
+BINOP = [ADD, SUB, MULTIPLY, DIVIDE, AND, OR, LT, GT, EQ]
 def addspaces(n):
     str = ''
     for i in range(n):
@@ -16,27 +16,6 @@ def addspaces(n):
 
 
 class CompilationEngine:
-    CONST = 1
-    ARG = 2
-    LOCAL = 3
-    STATIC = 4
-    THIS = 5
-    THAT = 6
-    POINTER = 7
-    TEMP = 8
-    ADD = '+'
-    SUB = '-'
-    NEG = '~'
-    EQ = '='
-    GT = '>'
-    LT = '<'
-    AND = '&'
-    OR = '|'
-    NOT = '!'
-    DIVIDE = '/'
-    MULTIPLY = '*'
-    SUBROUTINE_SCOPE = ['STATIC', 'FIELD']
-    CLASS_SCOPE = ['ARG', 'VAR']
 
     def __init__(self, tokens, file_path):
         self.tokens = tokens
@@ -520,12 +499,13 @@ class CompilationEngine:
         return [self.compiledo, self.compilelet, self.compileif, self.compilewhile, self.compilereturn]
 
     def symboltostring(self, str1):
-        if str1 == '&gt;':
-            return '>'
-        if str1 == '&lt;':
-            return '<'
-        if str1 == '&amp;':
-            return '&'
+        #todo maybe erase
+        # if str1 == '&gt;':
+        #     return '>'
+        # if str1 == '&lt;':
+        #     return '<'
+        # if str1 == '&amp;':
+        #     return '&'
         return str1
 
     def close(self):

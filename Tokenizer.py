@@ -83,12 +83,13 @@ class Tokenizer:
 
     @staticmethod
     def symboltostring(symbol):
-        if symbol == '>':
-            return '&gt;'
-        if symbol == '<':
-            return '&lt;'
-        if symbol == '&':
-            return '&amp;'
+        #todo maybe get ride of entirly
+        # if symbol == '>':
+        #     return '&gt;'
+        # if symbol == '<':
+        #     return '&lt;'
+        # if symbol == '&':
+        #     return '&amp;'
         return symbol
 
     @staticmethod
