@@ -27,7 +27,7 @@ class SymbolTable:
         self.type = dict()
         self.kind = dict()
         self.number = dict()
-        self.counter = {'static': 0, 'this': 0, 'local': 0, 'argument': 0}
+        self.counter = {STATIC: 0, THIS: 0, LCL: 0, ARG: 0}
 
     def start_subroutine(self):
         """

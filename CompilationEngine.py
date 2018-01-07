@@ -109,7 +109,7 @@ class CompilationEngine:
             self.vmwriter.write_pop(POINTER, 0)
         elif first.value == 'method':
             #self.subroutine_symboltable.define('this', self.cur_class, 'argument')
-            self.vmwriter.write_push('argument', 0)
+            self.vmwriter.write_push(ARG, 0)
             self.vmwriter.write_pop(POINTER, 0)
         newout, newtokens = self.compilestatements(tokens[:])
         if newout is not None:
