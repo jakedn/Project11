@@ -1,7 +1,7 @@
 ########################################################
 # CompilationEngine Class
 # nand project 10
-#
+# HI MARIA
 ########################################################
 
 from SymbolTable import *
@@ -22,7 +22,7 @@ class CompilationEngine:
         self.class_symboltable = SymbolTable()
         self.subroutine_symboltable = SymbolTable()
         self.cur_class = None
-        self.cur_subroutine_type = None # for the compile return function
+        self.cur_subroutine_type = None  # for the compile return function
         self.vmwriter = VMWriter(file_path)
         self.labelcounter = 0
 
@@ -184,7 +184,7 @@ class CompilationEngine:
             # pops name
             name = tokens.pop(0).value
             # get expressions
-            self.vmwriter.write_push(POINTER, 0)  # TODO : check
+            self.vmwriter.write_push(POINTER, 0)
             out_explist, tokens = self.compileexpressionlist(tokens[:])
             self.vmwriter.write_call(self.cur_class + '.' + name, out_explist + 1)
 
@@ -216,35 +216,6 @@ class CompilationEngine:
             out_explist, tokens = self.compileexpressionlist(tokens[:])
 
             self.vmwriter.write_call(class_kind + '.' + subname, out_explist + addthis)
-
-            # self.vmwriter.write_call(class_kind + '.' + name, out_explist + 1)
-            # # pops name
-            # name = tokens.pop(0).value
-            # # pops '.'
-            # tokens.pop(0)
-            # # pops subname
-            # subname = tokens.pop(0).value
-            # out_explist, tokens = self.compileexpressionlist(tokens[:])
-            # varkind = self.subroutine_symboltable.kind_of(name)
-            # if varkind is None:
-            #     varkind = self.class_symboltable.kind_of(name)
-            #     if varkind is None:
-            #         1
-            #         # self.vmwriter.write_push(self.POINTER, 0)
-            #         # out_explist += 1
-            #     else:
-            #         varindex = self.class_symboltable.index_of(name)
-            #         self.vmwriter.write_push(varkind, varindex)
-            #         name = self.class_symboltable.type_of(name)# TODO: check
-            #         out_explist += 1
-            # else:
-            #     varindex = self.subroutine_symboltable.index_of(name)
-            #     self.vmwriter.write_push(varkind, varindex)
-            #     name = self.subroutine_symboltable.type_of(name) # TODO: check
-            #     out_explist += 1
-            #
-            # print(name)
-            # self.vmwriter.write_call(name + '.' + subname, out_explist)
         self.vmwriter.write_pop(TEMP, 0)
         # pops ';'
         tokens.pop(0)

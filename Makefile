@@ -1,7 +1,7 @@
-FILES= Tokenizer.py Main.py JackAnalyzer CompilationEngine.py SymbolTable.py VMWriter.py
+FILES= Tokenizer.py Main.py JackCompiler CompilationEngine.py SymbolTable.py VMWriter.py
 
 all:
-	chmod a+x JackAnalyzer
+	chmod a+x JackCompiler
 
 
 ttest: Tokenizer.py tokentest.py
