@@ -82,13 +82,13 @@ class CompilationEngine:
         type = tokens.pop(0).value
         # name
         name = tokens.pop(0).value
-        self.class_symboltable.define(name, type, first)
+        self.class_symboltable.define(name, type, first.value)
         while tokens[0].value == ',':
             # pops ','
             tokens.pop(0)
             # name
             name = tokens.pop(0).value
-            self.class_symboltable.define(name, type, first)
+            self.class_symboltable.define(name, type, first.value)
         # pops ';'
         tokens.pop(0)
         return 0, tokens[:]
@@ -128,7 +128,7 @@ class CompilationEngine:
             self.vmwriter.write_pop(self.POINTER, 0)
         elif first.value == 'method':
             self.subroutine_symboltable.define('this', self.cur_class, 'argument')
-            self.vmwriter.write_push(self.ARG, 0)
+            self.vmwriter.write_push('argument', 0)
             self.vmwriter.write_pop(self.POINTER, 0)
         newout, newtokens = self.compilestatements(tokens[:])
         if newout is not None:
@@ -197,9 +197,10 @@ class CompilationEngine:
             return None, None
         if tokens[1].value != '.' or not tokens[1].isa('SYMBOL'):
             # pops name
-            name = tokens.pop(0)
+            name = tokens.pop(0).value
             out_explist, tokens = self.compileexpressionlist(tokens[:])
-            self.vmwriter.write_call(self.cur_class + '.' + name, out_explist)
+            self.vmwriter.write_push(self.POINTER, 0) # TODO : check
+            self.vmwriter.write_call(self.cur_class + '.' + name, out_explist + 1)
         else:
             # pops name
             name = tokens.pop(0).value
@@ -208,6 +209,17 @@ class CompilationEngine:
             # pops subname
             subname = tokens.pop(0).value
             out_explist, tokens = self.compileexpressionlist(tokens[:])
+            varkind = self.subroutine_symboltable.kind_of(name)
+            if varkind is None:
+                varkind = self.class_symboltable.kind_of(name)
+                if varkind is None:
+                    self.vmwriter.write_push(self.POINTER, 0)
+                else:
+                    varindex = self.class_symboltable.index_of(name)
+                    self.vmwriter.write_push(varkind, varindex)
+            else:
+                varindex = self.subroutine_symboltable.index_of(name)
+                self.vmwriter.write_push(varkind, varindex)
             self.vmwriter.write_call(name + '.' + subname, out_explist)
         self.vmwriter.write_pop(self.TEMP, 0)
         # pops ';'
@@ -455,7 +467,7 @@ class CompilationEngine:
                 elif keyword == 'false' or keyword == 'null':
                     self.vmwriter.write_push(self.CONST, 0)
                 elif keyword == 'this':
-                    self.vmwriter.write_push('argument', 0)  # TODO: make sure correctness
+                    self.vmwriter.write_push(self.POINTER, 0)  # TODO: make sure correctness
 
 
         return 0, tokens[:]

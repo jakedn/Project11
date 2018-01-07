@@ -6,7 +6,7 @@ class SymbolTable:
         self.type = dict()
         self.kind = dict()
         self.number = dict()
-        self.counter = {'static': 0, 'field': 0, 'local': 0, 'argument': 0}
+        self.counter = {'static': 0, 'this': 0, 'local': 0, 'argument': 0}
 
     def start_subroutine(self):
         """
@@ -15,7 +15,7 @@ class SymbolTable:
         self.type = dict()
         self.kind = dict()
         self.number = dict()
-        self.counter = {'static': 0, 'field': 0, 'local': 0, 'argument': 0}
+        self.counter = {'static': 0, 'this': 0, 'local': 0, 'argument': 0}
 
     def define(self, name, type, kind):
         self.type[name] = type

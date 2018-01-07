@@ -3,7 +3,7 @@ from os.path import basename
 
 class VMWriter:
 
-    SEGMENTS = {1: 'constant', 'argument': 'argument', 'local': 'local', 'static': 'static', 5: 'this', 6: 'that', 7: 'pointer', 8: 'temp'}
+    SEGMENTS = {1: 'constant', 'argument': 'argument', 'local': 'local', 'static': 'static', 'this': 'this', 6: 'that', 7: 'pointer', 8: 'temp'}
     ARITHMETIC = {'+': 'add', '-': 'sub', '~': 'neg', '=': 'eq', '>': 'gt', '<': 'lt', '&': 'and', '|': 'or', '!': 'not'}
 
     def __init__(self, file_path):
