@@ -16,4 +16,4 @@ clean:
 	rm *.pyc
 
 tar: $(FILES)
-	tar -cvf Project10 README Makefile $(FILES)
+	tar -cvf Project11 README Makefile $(FILES)

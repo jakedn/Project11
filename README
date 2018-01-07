@@ -1,11 +1,17 @@
 jakedn, unimaria
 name: jacob ness , email: jacob.ness@mail.huji.ac.il , tz: 209863000
 name: maria tseytlin, maria.tseytlin@mail.huji.ac.il , tz: 316984368
-Project10
+Project11
 
 Files:
 Main.py - main file controls the flow of our program
 Makefile - makefile for our program
+VMWriter.py - VMWriter module as in chapter 11
+SymbolTable.py - symboltable module as in chapter 11 of nand2tetris book
+JackAnalyzer - our program
+CompilationEngine.py - expanded complimation engine for p11 (started in p10)
+Tokenizer.py - same as in p10
+Main.py - where our main function for our program resides
 
 
 Personal commentary: None
