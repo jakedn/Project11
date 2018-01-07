@@ -105,6 +105,8 @@ class CompilationEngine:
         # adds void|type
         type_func = tokens.pop(0).value
         self.cur_subroutine_type = type_func
+        if first.value == 'method':
+            self.subroutine_symboltable.define('this', self.cur_class, 'argument')
         # adds subroutine name
         name_func = tokens.pop(0).value
         paraout, tokens = self.compileparameterlist(tokens[:])
@@ -127,7 +129,7 @@ class CompilationEngine:
             self.vmwriter.write_call('Memory.alloc', 1)
             self.vmwriter.write_pop(self.POINTER, 0)
         elif first.value == 'method':
-            self.subroutine_symboltable.define('this', self.cur_class, 'argument')
+            #self.subroutine_symboltable.define('this', self.cur_class, 'argument')
             self.vmwriter.write_push('argument', 0)
             self.vmwriter.write_pop(self.POINTER, 0)
         newout, newtokens = self.compilestatements(tokens[:])
@@ -164,7 +166,7 @@ class CompilationEngine:
         if not (first.isa('KEYWORD') and first.value == 'var'):
             return None, None
         # adds type
-        vartype = tokens.pop(0)
+        vartype = tokens.pop(0).value
         # adds name
         varname = tokens.pop(0).value
         varcount = 1
@@ -213,13 +215,21 @@ class CompilationEngine:
             if varkind is None:
                 varkind = self.class_symboltable.kind_of(name)
                 if varkind is None:
-                    self.vmwriter.write_push(self.POINTER, 0)
+                    1
+                    # self.vmwriter.write_push(self.POINTER, 0)
+                    # out_explist += 1
                 else:
                     varindex = self.class_symboltable.index_of(name)
                     self.vmwriter.write_push(varkind, varindex)
+                    name = self.class_symboltable.type_of(name)# TODO: check
+                    out_explist += 1
             else:
                 varindex = self.subroutine_symboltable.index_of(name)
                 self.vmwriter.write_push(varkind, varindex)
+                name = self.subroutine_symboltable.type_of(name) # TODO: check
+                out_explist += 1
+
+            print(name)
             self.vmwriter.write_call(name + '.' + subname, out_explist)
         self.vmwriter.write_pop(self.TEMP, 0)
         # pops ';'
@@ -387,9 +397,10 @@ class CompilationEngine:
         # if the term is subroutineName(expressionList)
         elif tokens[1].value == '(' and tokens[0].isa('IDENTIFIER'):
             # pops name
-            name = tokens.pop(0)
+            name = tokens.pop(0).value
             out_explist, tokens = self.compileexpressionlist(tokens[:])
-            self.vmwriter.write_call(self.cur_class + '.' + name, out_explist)
+            self.vmwriter.write_push(self.POINTER, 0)  # TODO : check
+            self.vmwriter.write_call(self.cur_class + '.' + name, out_explist + 1)
         # if the term is (className|varName).subroutineName(expressionList)
         elif tokens[1].value == '.':
             # pops name
@@ -399,6 +410,23 @@ class CompilationEngine:
             # pops subname
             subname = tokens.pop(0).value
             out_explist, tokens = self.compileexpressionlist(tokens[:])
+            varkind = self.subroutine_symboltable.kind_of(name)
+            if varkind is None:
+                varkind = self.class_symboltable.kind_of(name)
+                if varkind is None:
+                    1
+                    # self.vmwriter.write_push(self.POINTER, 0)
+                    # out_explist += 1
+                else:
+                    varindex = self.class_symboltable.index_of(name)
+                    self.vmwriter.write_push(varkind, varindex)
+                    name = self.class_symboltable.type_of(name)  # TODO: check
+                    out_explist += 1
+            else:
+                varindex = self.subroutine_symboltable.index_of(name)
+                self.vmwriter.write_push(varkind, varindex)
+                name = self.subroutine_symboltable.type_of(name)  # TODO: check
+                out_explist += 1
             self.vmwriter.write_call(name + '.' + subname, out_explist)
         # unary operator
         elif tokens[0].value == '~' or tokens[0].value == '-':
