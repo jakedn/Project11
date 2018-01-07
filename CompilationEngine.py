@@ -104,13 +104,13 @@ class CompilationEngine:
         if first.value == 'constructor':
             push_index = self.class_symboltable.var_count('field')
             # push constant num_fields
-            self.vmwriter.write_push(self.CONST, push_index)
+            self.vmwriter.write_push(CONST, push_index)
             self.vmwriter.write_call('Memory.alloc', 1)
-            self.vmwriter.write_pop(self.POINTER, 0)
+            self.vmwriter.write_pop(POINTER, 0)
         elif first.value == 'method':
             #self.subroutine_symboltable.define('this', self.cur_class, 'argument')
             self.vmwriter.write_push('argument', 0)
-            self.vmwriter.write_pop(self.POINTER, 0)
+            self.vmwriter.write_pop(POINTER, 0)
         newout, newtokens = self.compilestatements(tokens[:])
         if newout is not None:
             tokens = newtokens
@@ -180,7 +180,7 @@ class CompilationEngine:
             # pops name
             name = tokens.pop(0).value
             out_explist, tokens = self.compileexpressionlist(tokens[:])
-            self.vmwriter.write_push(self.POINTER, 0) # TODO : check
+            self.vmwriter.write_push(POINTER, 0)  # TODO : check
             self.vmwriter.write_call(self.cur_class + '.' + name, out_explist + 1)
         else:
             # pops name
@@ -210,7 +210,7 @@ class CompilationEngine:
 
             print(name)
             self.vmwriter.write_call(name + '.' + subname, out_explist)
-        self.vmwriter.write_pop(self.TEMP, 0)
+        self.vmwriter.write_pop(TEMP, 0)
         # pops ';'
         tokens.pop(0)
         return 0, tokens[:]
@@ -235,14 +235,14 @@ class CompilationEngine:
             outcomp, tokens = self.compileexpression(tokens[:])  # pushes something
             # adds ']'
             tokens.pop(0)
-            self.vmwriter.write_arithmetic(self.ADD)
+            self.vmwriter.write_arithmetic(ADD)
             # pops '='
             tokens.pop(0)
             out_expr, tokens = self.compileexpression(tokens[:])  # pushes something
-            self.vmwriter.write_pop(self.TEMP, 0)
-            self.vmwriter.write_pop(self.POINTER, 1)
-            self.vmwriter.write_push(self.TEMP, 0)
-            self.vmwriter.write_pop(self.THAT, 0)
+            self.vmwriter.write_pop(TEMP, 0)
+            self.vmwriter.write_pop(POINTER, 1)
+            self.vmwriter.write_push(TEMP, 0)
+            self.vmwriter.write_pop(THAT, 0)
         else:
             # adds varName
             varname = tokens.pop(0).value
@@ -273,7 +273,7 @@ class CompilationEngine:
         outputexp, tokens = self.compileexpression(tokens[:])
         # adds ')'
         tokens.pop(0)
-        self.vmwriter.write_arithmetic(self.NOT)
+        self.vmwriter.write_arithmetic(NOT)
         self.vmwriter.write_if('L' + str(label2))
         # pops '{'
         tokens.pop(0)
@@ -294,7 +294,7 @@ class CompilationEngine:
         # pops ';'
         tokens.pop(0)
         if self.cur_subroutine_type == 'void':
-            self.vmwriter.write_push(self.CONST, 0)
+            self.vmwriter.write_push(CONST, 0)
         self.vmwriter.write_return()
         return 0, tokens[:]
 
@@ -311,7 +311,7 @@ class CompilationEngine:
         outputexp, tokens = self.compileexpression(tokens[:])
         # pops ')'
         tokens.pop(0)
-        self.vmwriter.write_arithmetic(self.NOT)
+        self.vmwriter.write_arithmetic(NOT)
         self.vmwriter.write_if('L' + str(label1))
         # pops '{'
         tokens.pop(0)
@@ -370,15 +370,15 @@ class CompilationEngine:
             expression_output, tokens = self.compileexpression(tokens[:]) # pushes something
             # pops ']'
             tokens.pop(0)
-            self.vmwriter.write_arithmetic(self.ADD)
-            self.vmwriter.write_pop(self.POINTER, 1)
-            self.vmwriter.write_push(self.THAT, 0)
+            self.vmwriter.write_arithmetic(ADD)
+            self.vmwriter.write_pop(POINTER, 1)
+            self.vmwriter.write_push(THAT, 0)
         # if the term is subroutineName(expressionList)
         elif tokens[1].value == '(' and tokens[0].isa('IDENTIFIER'):
             # pops name
             name = tokens.pop(0).value
             out_explist, tokens = self.compileexpressionlist(tokens[:])
-            self.vmwriter.write_push(self.POINTER, 0)  # TODO : check
+            self.vmwriter.write_push(POINTER, 0)  # TODO : check
             self.vmwriter.write_call(self.cur_class + '.' + name, out_explist + 1)
         # if the term is (className|varName).subroutineName(expressionList)
         elif tokens[1].value == '.':
@@ -413,9 +413,9 @@ class CompilationEngine:
             operator = tokens.pop(0).value
             output_term, tokens = self.compileterm(tokens[:])  # pushes something
             if operator == '~':
-                self.vmwriter.write_arithmetic(self.NOT)
+                self.vmwriter.write_arithmetic(NOT)
             elif operator == '-':
-                self.vmwriter.write_arithmetic(self.NEG)
+                self.vmwriter.write_arithmetic(NEG)
         # (expression)
         elif tokens[0].value == '(':
             # pops '('
@@ -428,34 +428,34 @@ class CompilationEngine:
             constant_token = tokens.pop(0)
             if constant_token.isa('STR_CONST'):
                 string_const = constant_token.value
-                self.vmwriter.write_push(self.CONST, len(string_const))
+                self.vmwriter.write_push(CONST, len(string_const))
                 self.vmwriter.write_call('String.new', 1)
                 for ch in string_const:
                     if ch == '\n':
-                        self.vmwriter.write_push(self.CONST, ord('\\'))
+                        self.vmwriter.write_push(CONST, ord('\\'))
                         self.vmwriter.write_call('String.appendChar', 2)
-                        self.vmwriter.write_push(self.CONST,ord('n'))
+                        self.vmwriter.write_push(CONST, ord('n'))
                         self.vmwriter.write_call('String.appendChar', 2)
                     elif ch == '\t':
-                        self.vmwriter.write_push(self.CONST, ord('\\'))
+                        self.vmwriter.write_push(CONST, ord('\\'))
                         self.vmwriter.write_call('String.appendChar', 2)
-                        self.vmwriter.write_push(self.CONST, ord('t'))
+                        self.vmwriter.write_push(CONST, ord('t'))
                         self.vmwriter.write_call('String.appendChar', 2)
                     elif ch == '\r':
-                        self.vmwriter.write_push(self.CONST, ord('\\'))
+                        self.vmwriter.write_push(CONST, ord('\\'))
                         self.vmwriter.write_call('String.appendChar', 2)
-                        self.vmwriter.write_push(self.CONST, ord('r'))
+                        self.vmwriter.write_push(CONST, ord('r'))
                         self.vmwriter.write_call('String.appendChar', 2)
                     elif ch == '\b':
-                        self.vmwriter.write_push(self.CONST, ord('\\'))
+                        self.vmwriter.write_push(CONST, ord('\\'))
                         self.vmwriter.write_call('String.appendChar', 2)
-                        self.vmwriter.write_push(self.CONST, ord('b'))
+                        self.vmwriter.write_push(CONST, ord('b'))
                         self.vmwriter.write_call('String.appendChar', 2)
                     else:
-                        self.vmwriter.write_push(self.CONST, ord(ch))
+                        self.vmwriter.write_push(CONST, ord(ch))
                         self.vmwriter.write_call('String.appendChar', 2)
             elif constant_token.isa('INT_CONST'):
-                self.vmwriter.write_push(self.CONST, constant_token.value)
+                self.vmwriter.write_push(CONST, constant_token.value)
             # var name
             elif constant_token.isa('IDENTIFIER'):
                 varname = constant_token.value
@@ -469,12 +469,12 @@ class CompilationEngine:
             elif constant_token.isa('KEYWORD'):
                 keyword = constant_token.value
                 if keyword == 'true':
-                    self.vmwriter.write_push(self.CONST, 0)
-                    self.vmwriter.write_arithmetic(self.NOT)
+                    self.vmwriter.write_push(CONST, 0)
+                    self.vmwriter.write_arithmetic(NOT)
                 elif keyword == 'false' or keyword == 'null':
-                    self.vmwriter.write_push(self.CONST, 0)
+                    self.vmwriter.write_push(CONST, 0)
                 elif keyword == 'this':
-                    self.vmwriter.write_push(self.POINTER, 0)  # TODO: make sure correctness
+                    self.vmwriter.write_push(POINTER, 0)  # TODO: make sure correctness
 
 
         return 0, tokens[:]

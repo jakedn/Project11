@@ -1,7 +1,28 @@
+CONST = 1
+ARG = 2
+LCL = 3
+STATIC = 4
+THIS = 5
+THAT = 6
+POINTER = 7
+TEMP = 8
+
+ADD = '+'
+SUB = '-'
+NEG = '~'
+EQ = '='
+GT = '>'
+LT = '<'
+AND = '&'
+OR = '|'
+NOT = '!'
+DIVIDE = '/'
+MULTIPLY = '*'
+
 class SymbolTable:
 
-    KIND = {'static': 'static', 'field': 'this', 'VAR': 'local', 'argument': 'argument'}
-    COUNTER = {'static': 0, 'field': 0}
+    KIND = {'static': STATIC, 'field': THIS, 'VAR': LCL, 'argument': ARG}
+    COUNTER = {'static': 0, 'field': 0}     #todo is this needed??
     def __init__(self):
         self.type = dict()
         self.kind = dict()
@@ -15,7 +36,7 @@ class SymbolTable:
         self.type = dict()
         self.kind = dict()
         self.number = dict()
-        self.counter = {'static': 0, 'this': 0, 'local': 0, 'argument': 0}
+        self.counter = {STATIC: 0, THIS: 0, LCL: 0, ARG: 0}
 
     def define(self, name, type, kind):
         self.type[name] = type

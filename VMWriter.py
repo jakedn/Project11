@@ -1,10 +1,12 @@
 from os.path import basename
-
+from SymbolTable import *
 
 class VMWriter:
 
-    SEGMENTS = {1: 'constant', 'argument': 'argument', 'local': 'local', 'static': 'static', 'this': 'this', 6: 'that', 7: 'pointer', 8: 'temp'}
-    ARITHMETIC = {'+': 'add', '-': 'sub', '~': 'neg', '=': 'eq', '>': 'gt', '<': 'lt', '&': 'and', '|': 'or', '!': 'not'}
+    SEGMENTS = {CONST: 'constant', ARG: 'argument', LCL: 'local', STATIC: 'static', THIS: 'this', THAT: 'that',
+                POINTER: 'pointer', TEMP: 'temp'}
+    ARITHMETIC = {ADD: 'add', SUB: 'sub', NEG: 'neg', EQ: 'eq', GT: 'gt', LT: 'lt', AND: 'and',
+                  OR: 'or', NOT: 'not'}
 
     def __init__(self, file_path):
         """

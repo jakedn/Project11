@@ -1,4 +1,4 @@
-FILES= Tokenizer.py Main.py JackAnalyzer CompilationEngine.py
+FILES= Tokenizer.py Main.py JackAnalyzer CompilationEngine.py SymbolTable.py VMWriter.py
 
 all:
 	chmod a+x JackAnalyzer
